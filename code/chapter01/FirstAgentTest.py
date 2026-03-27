@@ -34,8 +34,8 @@ def get_weather(city: str) -> str:
     通过调用 wttr.in API 查询真实的天气信息。
     """
     # API端点，我们请求JSON格式的数据
-    url = f"https://wttr.in/{city}?format=j1"
-    
+    key=os.getenv("LYKM_API_KEY")
+    url = f"https://qqlykm.cn/api/weather/get?city={city}&key={key}"
     try:
         # 发起网络请求
         response = requests.get(url)
@@ -45,9 +45,9 @@ def get_weather(city: str) -> str:
         data = response.json()
         
         # 提取当前天气状况
-        current_condition = data['current_condition'][0]
-        weather_desc = current_condition['weatherDesc'][0]['value']
-        temp_c = current_condition['temp_C']
+        current_condition = data['data']
+        weather_desc = current_condition['current_weather']
+        temp_c = current_condition['current_temperature']
         
         # 格式化成自然语言返回
         return f"{city}当前天气：{weather_desc}，气温{temp_c}摄氏度"
@@ -159,18 +159,18 @@ llm = OpenAICompatibleClient(
 )
 
 # --- 2. 初始化 ---
-user_prompt = "你好，请帮我查询一下今天北京的天气，然后根据天气推荐一个合适的旅游景点。"
+user_prompt = "你好，请帮我查询一下今天南京的天气，然后根据天气推荐一个合适的旅游景点。"
 prompt_history = [f"用户请求: {user_prompt}"]
 
 print(f"用户输入: {user_prompt}\n" + "="*40)
 
 # --- 3. 运行主循环 ---
-for i in range(2): # 设置最大循环次数
+for i in range(5): # 设置最大循环次数
     print(f"--- 循环 {i+1} ---\n")
     
     # 3.1. 构建Prompt
     full_prompt = "\n".join(prompt_history)
-    
+    print(full_prompt)
     # 3.2. 调用LLM进行思考
     llm_output = llm.generate(full_prompt, system_prompt=AGENT_SYSTEM_PROMPT)
     # 模型可能会输出多余的Thought-Action，需要截断
